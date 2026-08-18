@@ -1,0 +1,49 @@
+name: UCP Agent 24/7 Push Listener
+
+on:
+  schedule:
+    # Auto-restart runner every 4 hours to refresh continuous session (00:00, 04:00, 08:00, 12:00, 16:00, 20:00 UTC)
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+    # Allows manual 1-click execution from GitHub Mobile App or website
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 230  # Runs continuously for up to 3.8 hours per session
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright & OS Dependencies
+        run: |
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Run UCP Agent Push Listener
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          UCP_EMAIL: ${{ secrets.UCP_EMAIL }}
+          UCP_PASSWORD: ${{ secrets.UCP_PASSWORD }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          BOT_TITLE: ${{ secrets.BOT_TITLE }}
+          BOT_TAG: ${{ secrets.BOT_TAG }}
+          LANGCHAIN_TRACING_V2: 'true'
+          LANGCHAIN_ENDPOINT: 'https://api.smith.langchain.com'
+          LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
+          LANGCHAIN_PROJECT: ${{ secrets.LANGCHAIN_PROJECT }}
+        run: |
+          python uni_agent_ntfy.py
