@@ -139,31 +139,28 @@ workflow.add_edge("tools", "agent")
 # Compile LangGraph application with Checkpointer Memory
 app = workflow.compile(checkpointer=checkpointer)
 
+from websockets.sync.client import connect
+
 def listen_and_respond():
-    print("UCP PORTAL ASSISTANT - LANGGRAPH STATEGRAPH (CHECKPOINTER + SUMMARY MEMORY)")
-    print(f"Topic Web UI:  https://ntfy.sh/{NTFY_TOPIC}")
-    print(f"Listening on:  https://ntfy.sh/{NTFY_TOPIC}/json")
-    print("Architecture: Summarize Node -> Agent Node -> tools_condition -> ToolNode -> Checkpointer")
-    print("\nPress Ctrl+C to exit.\n")
+    print("UCP PORTAL ASSISTANT - LANGGRAPH STATEGRAPH (CHECKPOINTER + SUMMARY MEMORY)", flush=True)
+    print(f"Topic Web UI:  https://ntfy.sh/{NTFY_TOPIC}", flush=True)
+    print(f"Listening on:  wss://ntfy.sh/{NTFY_TOPIC}/ws", flush=True)
+    print("Architecture: Summarize Node -> Agent Node -> tools_condition -> ToolNode -> Checkpointer", flush=True)
+    print("\nPress Ctrl+C to exit.\n", flush=True)
     
-    stream_url = f"https://ntfy.sh/{NTFY_TOPIC}/json"
+    ws_url = f"wss://ntfy.sh/{NTFY_TOPIC}/ws"
     
     # Thread config for Checkpointer MemorySaver
     config = {"configurable": {"thread_id": NTFY_TOPIC}}
     
     while True:
         try:
-            req = urllib.request.Request(stream_url)
-            with requests.get(stream_url, stream=True, timeout=60) as response:
-                print(f"[Connected] Active & listening for incoming commands on ntfy.sh/{NTFY_TOPIC} ...\n", flush=True)
-                for line in response.iter_lines(chunk_size=1, decode_unicode=True):
-                    if not line:
+            with connect(ws_url) as websocket:
+                print(f"[Connected] Active & listening for incoming commands on wss://ntfy.sh/{NTFY_TOPIC} ...\n", flush=True)
+                for line_str in websocket:
+                    if not line_str:
                         continue
                     try:
-                        line_str = line.strip()
-                        if not line_str:
-                            continue
-                            
                         data = json.loads(line_str)
                         
                         if data.get("event") == "message":
@@ -194,10 +191,10 @@ def listen_and_respond():
                     except json.JSONDecodeError:
                         continue
                     except Exception as e:
-                        print(f"[Error processing command]: {e}")
+                        print(f"[Error processing command]: {e}", flush=True)
                         
-        except (urllib.error.URLError, TimeoutError, Exception) as e:
-            print(f"[Stream disconnected, reconnecting in 3 seconds...]: {e}")
+        except Exception as e:
+            print(f"[Stream disconnected, reconnecting in 3 seconds...]: {e}", flush=True)
             time.sleep(3)
 
 if __name__ == "__main__":
