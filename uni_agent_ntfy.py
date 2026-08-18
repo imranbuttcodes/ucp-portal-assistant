@@ -139,11 +139,11 @@ workflow.add_edge("tools", "agent")
 app = workflow.compile(checkpointer=checkpointer)
 
 def listen_and_respond():
-    print("UCP PORTAL ASSISTANT - LANGGRAPH STATEGRAPH (CHECKPOINTER + SUMMARY MEMORY)")
-    print(f"Topic Web UI:  https://ntfy.sh/{NTFY_TOPIC}")
-    print(f"Listening on:  https://ntfy.sh/{NTFY_TOPIC}/json")
-    print("Architecture: Summarize Node -> Agent Node -> tools_condition -> ToolNode -> Checkpointer")
-    print("\nPress Ctrl+C to exit.\n")
+    print("UCP PORTAL ASSISTANT - LANGGRAPH STATEGRAPH (CHECKPOINTER + SUMMARY MEMORY)", flush=True)
+    print(f"Topic Web UI:  https://ntfy.sh/{NTFY_TOPIC}", flush=True)
+    print(f"Listening on:  https://ntfy.sh/{NTFY_TOPIC}/json", flush=True)
+    print("Architecture: Summarize Node -> Agent Node -> tools_condition -> ToolNode -> Checkpointer", flush=True)
+    print("\nPress Ctrl+C to exit.\n", flush=True)
     
     stream_url = f"https://ntfy.sh/{NTFY_TOPIC}/json"
     
@@ -154,7 +154,7 @@ def listen_and_respond():
         try:
             req = urllib.request.Request(stream_url)
             with urllib.request.urlopen(req, timeout=60) as response:
-                print(f"[Connected] Active & listening for incoming commands on ntfy.sh/{NTFY_TOPIC} ...\n")
+                print(f"[Connected] Active & listening for incoming commands on ntfy.sh/{NTFY_TOPIC} ...\n", flush=True)
                 for line in response:
                     if not line:
                         continue
@@ -174,7 +174,7 @@ def listen_and_respond():
                             if msg_title == BOT_TITLE or BOT_TAG in tags or incoming_text in sent_messages_cache:
                                 continue
                                 
-                            print(f"[Incoming Mobile Query]: '{incoming_text}'")
+                            print(f"[Incoming Mobile Query]: '{incoming_text}'", flush=True)
                             
                             # Invoke LangGraph app with thread_id checkpointer configuration
                             result_state = app.invoke(
@@ -185,18 +185,18 @@ def listen_and_respond():
                             final_ai_msg = result_state["messages"][-1]
                             answer = final_ai_msg.content
                             
-                            print(f"[Bot Output]:\n{answer}")
-                            print(f"[Pushing response to phone via ntfy.sh/{NTFY_TOPIC}]...")
+                            print(f"[Bot Output]:\n{answer}", flush=True)
+                            print(f"[Pushing response to phone via ntfy.sh/{NTFY_TOPIC}]...", flush=True)
                             send_ntfy_push(answer, title=BOT_TITLE)
-                            print("[Push Notification Delivered - Ready for next query!]\n")
+                            print("[Push Notification Delivered - Ready for next query!]\n", flush=True)
                             
                     except json.JSONDecodeError:
                         continue
                     except Exception as e:
-                        print(f"[Error processing command]: {e}")
+                        print(f"[Error processing command]: {e}", flush=True)
                         
         except (urllib.error.URLError, TimeoutError, Exception) as e:
-            print(f"[Stream disconnected, reconnecting in 3 seconds...]: {e}")
+            print(f"[Stream disconnected, reconnecting in 3 seconds...]: {e}", flush=True)
             time.sleep(3)
 
 if __name__ == "__main__":
