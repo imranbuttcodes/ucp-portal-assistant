@@ -146,12 +146,22 @@ def listen_and_respond():
     print("Architecture: Summarize Node -> Agent Node -> tools_condition -> ToolNode -> Checkpointer", flush=True)
     print("\nPress Ctrl+C to exit.\n", flush=True)
     
-    # Use polling instead of streaming to bypass cloud proxy blocks
-    last_id = "all"
-    
     # Thread config for Checkpointer MemorySaver
     config = {"configurable": {"thread_id": NTFY_TOPIC}}
     
+    # Initial fetch to skip all historical messages (backlog)
+    last_id = "all"
+    try:
+        init_resp = requests.get(f"https://ntfy.sh/{NTFY_TOPIC}/json?poll=1", timeout=10)
+        if init_resp.status_code == 200:
+            lines = init_resp.text.strip().split("\n")
+            if lines and lines[-1]:
+                last_data = json.loads(lines[-1])
+                if "id" in last_data:
+                    last_id = last_data["id"]
+    except Exception as e:
+        pass
+        
     print(f"[Connected] Active & polling for incoming commands on ntfy.sh/{NTFY_TOPIC} ...\n", flush=True)
     
     while True:
