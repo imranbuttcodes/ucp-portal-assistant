@@ -4,6 +4,7 @@ import json
 import time
 import urllib.request
 import urllib.error
+import requests
 from datetime import datetime
 from dotenv import load_dotenv
 from typing import Annotated, Sequence, TypedDict
@@ -152,10 +153,9 @@ def listen_and_respond():
     
     while True:
         try:
-            req = urllib.request.Request(stream_url)
-            with urllib.request.urlopen(req, timeout=60) as response:
+            with requests.get(stream_url, stream=True, timeout=60) as response:
                 print(f"[Connected] Active & listening for incoming commands on ntfy.sh/{NTFY_TOPIC} ...\n", flush=True)
-                for line in response:
+                for line in response.iter_lines():
                     if not line:
                         continue
                     try:
@@ -195,7 +195,7 @@ def listen_and_respond():
                     except Exception as e:
                         print(f"[Error processing command]: {e}", flush=True)
                         
-        except (urllib.error.URLError, TimeoutError, Exception) as e:
+        except (requests.exceptions.RequestException, Exception) as e:
             print(f"[Stream disconnected, reconnecting in 3 seconds...]: {e}", flush=True)
             time.sleep(3)
 
