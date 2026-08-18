@@ -4,6 +4,7 @@ import json
 import time
 import urllib.request
 import urllib.error
+import requests
 from datetime import datetime
 from dotenv import load_dotenv
 from typing import Annotated, Sequence, TypedDict
