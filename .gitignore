@@ -1,0 +1,42 @@
+# Environment Variables & Secrets
+.env
+*.env
+*.env.local
+
+# Sensitive Session & Cache Data
+portal_session.json
+*.session.json
+
+# SQLite Databases
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+uni_data.db
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Downloads & Physical Files
+downloads/
+
+# IDE & OS Files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
