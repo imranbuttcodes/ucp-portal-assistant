@@ -149,40 +149,22 @@ def listen_and_respond():
     # Thread config for Checkpointer MemorySaver
     config = {"configurable": {"thread_id": NTFY_TOPIC}}
     
-    # Initial fetch to skip all historical messages (backlog)
-    last_id = "all"
-    try:
-        init_resp = requests.get(f"https://ntfy.sh/{NTFY_TOPIC}/json?poll=1", timeout=10)
-        if init_resp.status_code == 200:
-            lines = init_resp.text.strip().split("\n")
-            if lines and lines[-1]:
-                last_data = json.loads(lines[-1])
-                if "id" in last_data:
-                    last_id = last_data["id"]
-    except Exception as e:
-        pass
-        
-    print(f"[Connected] Active & polling for incoming commands on ntfy.sh/{NTFY_TOPIC} ...\n", flush=True)
+    from websockets.sync.client import connect
+    
+    ws_url = f"wss://ntfy.sh/{NTFY_TOPIC}/ws"
+    
+    # Thread config for Checkpointer MemorySaver
+    config = {"configurable": {"thread_id": NTFY_TOPIC}}
     
     while True:
         try:
-            poll_url = f"https://ntfy.sh/{NTFY_TOPIC}/json?poll=1&since={last_id}"
-            response = requests.get(poll_url, timeout=10)
-            
-            if response.status_code == 200:
-                for line in response.iter_lines(decode_unicode=True):
-                    if not line:
+            with connect(ws_url) as websocket:
+                print(f"[Connected] Active & listening for incoming commands on wss://ntfy.sh/{NTFY_TOPIC} ...\n", flush=True)
+                for line_str in websocket:
+                    if not line_str:
                         continue
                     try:
-                        line_str = line.strip()
-                        if not line_str:
-                            continue
-                            
                         data = json.loads(line_str)
-                        
-                        # Update last_id to fetch only newer messages next time
-                        if "id" in data:
-                            last_id = data["id"]
                         
                         if data.get("event") == "message":
                             incoming_text = data.get("message", "").strip()
@@ -214,10 +196,8 @@ def listen_and_respond():
                     except Exception as e:
                         print(f"[Error processing command]: {e}", flush=True)
                         
-            time.sleep(2)  # Wait 2 seconds before polling again
-                        
-        except (requests.exceptions.RequestException, Exception) as e:
-            print(f"[Network error, retrying in 3 seconds...]: {e}", flush=True)
+        except Exception as e:
+            print(f"[Stream disconnected, reconnecting in 3 seconds...]: {e}", flush=True)
             time.sleep(3)
 
 if __name__ == "__main__":
