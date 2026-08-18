@@ -139,29 +139,40 @@ workflow.add_edge("tools", "agent")
 # Compile LangGraph application with Checkpointer Memory
 app = workflow.compile(checkpointer=checkpointer)
 
-from websockets.sync.client import connect
-
 def listen_and_respond():
     print("UCP PORTAL ASSISTANT - LANGGRAPH STATEGRAPH (CHECKPOINTER + SUMMARY MEMORY)", flush=True)
     print(f"Topic Web UI:  https://ntfy.sh/{NTFY_TOPIC}", flush=True)
-    print(f"Listening on:  wss://ntfy.sh/{NTFY_TOPIC}/ws", flush=True)
+    print(f"Listening on:  https://ntfy.sh/{NTFY_TOPIC}/json", flush=True)
     print("Architecture: Summarize Node -> Agent Node -> tools_condition -> ToolNode -> Checkpointer", flush=True)
     print("\nPress Ctrl+C to exit.\n", flush=True)
     
-    ws_url = f"wss://ntfy.sh/{NTFY_TOPIC}/ws"
+    # Use polling instead of streaming to bypass cloud proxy blocks
+    last_id = "all"
     
     # Thread config for Checkpointer MemorySaver
     config = {"configurable": {"thread_id": NTFY_TOPIC}}
     
+    print(f"[Connected] Active & polling for incoming commands on ntfy.sh/{NTFY_TOPIC} ...\n", flush=True)
+    
     while True:
         try:
-            with connect(ws_url) as websocket:
-                print(f"[Connected] Active & listening for incoming commands on wss://ntfy.sh/{NTFY_TOPIC} ...\n", flush=True)
-                for line_str in websocket:
-                    if not line_str:
+            poll_url = f"https://ntfy.sh/{NTFY_TOPIC}/json?poll=1&since={last_id}"
+            response = requests.get(poll_url, timeout=10)
+            
+            if response.status_code == 200:
+                for line in response.iter_lines(decode_unicode=True):
+                    if not line:
                         continue
                     try:
+                        line_str = line.strip()
+                        if not line_str:
+                            continue
+                            
                         data = json.loads(line_str)
+                        
+                        # Update last_id to fetch only newer messages next time
+                        if "id" in data:
+                            last_id = data["id"]
                         
                         if data.get("event") == "message":
                             incoming_text = data.get("message", "").strip()
@@ -172,7 +183,7 @@ def listen_and_respond():
                             if msg_title == BOT_TITLE or BOT_TAG in tags or incoming_text in sent_messages_cache:
                                 continue
                                 
-                            print(f"[Incoming Mobile Query]: '{incoming_text}'")
+                            print(f"[Incoming Mobile Query]: '{incoming_text}'", flush=True)
                             
                             # Invoke LangGraph app with thread_id checkpointer configuration
                             result_state = app.invoke(
@@ -183,8 +194,8 @@ def listen_and_respond():
                             final_ai_msg = result_state["messages"][-1]
                             answer = final_ai_msg.content
                             
-                            print(f"[Bot Output]:\n{answer}")
-                            print(f"[Pushing response to phone via ntfy.sh/{NTFY_TOPIC}]...")
+                            print(f"[Bot Output]:\n{answer}", flush=True)
+                            print(f"[Pushing response to phone via ntfy.sh/{NTFY_TOPIC}]...", flush=True)
                             send_ntfy_push(answer, title=BOT_TITLE)
                             print("[Push Notification Delivered - Ready for next query!]\n")
                             
@@ -193,8 +204,10 @@ def listen_and_respond():
                     except Exception as e:
                         print(f"[Error processing command]: {e}", flush=True)
                         
-        except Exception as e:
-            print(f"[Stream disconnected, reconnecting in 3 seconds...]: {e}", flush=True)
+            time.sleep(2)  # Wait 2 seconds before polling again
+                        
+        except (requests.exceptions.RequestException, Exception) as e:
+            print(f"[Network error, retrying in 3 seconds...]: {e}", flush=True)
             time.sleep(3)
 
 if __name__ == "__main__":
