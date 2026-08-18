@@ -104,7 +104,6 @@ UCP-Portal-Assistant/
 ├── uni_agent_test.py     # Terminal Sandbox CLI
 ├── ucp_scraper.py        # Playwright Portal Scraper
 ├── uni_db_manager.py     # SQLite Database Manager
-├── ntfy_twoway_bot.py    # ntfy listener script
 └── README.md             # Documentation
 ```
 
