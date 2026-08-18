@@ -53,8 +53,6 @@ workflow.add_edge("tools", "agent")
 app = workflow.compile()
 
 def chat_loop():    
-    print("UNI-ASSISTANT SANDBOX READY (LANGGRAPH STATEGRAPH EDITION)")
-    print("I now have access to 100% of the scraper's raw JSON data.")
     print("Type 'exit' or 'quit' to stop.\n")
     
     chat_history = []
