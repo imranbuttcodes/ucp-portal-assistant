@@ -153,13 +153,13 @@ def listen_and_respond():
     while True:
         try:
             req = urllib.request.Request(stream_url)
-            with urllib.request.urlopen(req, timeout=60) as response:
-                print(f"[Connected] Active & listening for incoming commands on ntfy.sh/{NTFY_TOPIC} ...\n")
-                for line in response:
+            with requests.get(stream_url, stream=True, timeout=60) as response:
+                print(f"[Connected] Active & listening for incoming commands on ntfy.sh/{NTFY_TOPIC} ...\n", flush=True)
+                for line in response.iter_lines(chunk_size=1, decode_unicode=True):
                     if not line:
                         continue
                     try:
-                        line_str = line.decode("utf-8").strip()
+                        line_str = line.strip()
                         if not line_str:
                             continue
                             
