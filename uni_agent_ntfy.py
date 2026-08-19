@@ -36,7 +36,8 @@ def send_ntfy_push(message: str, title: str = BOT_TITLE, priority: str = "defaul
         "topic": NTFY_TOPIC,
         "message": message,
         "title": title,
-        "tags": [tags]
+        "tags": [tags],
+        "markdown": True
     }
     
     req = urllib.request.Request(
