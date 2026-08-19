@@ -19,7 +19,6 @@ The system connects to the portal using Playwright web automation, caches record
 - [Configuration (.env)](#configuration-env)
 - [Usage Guide](#usage-guide)
 - [Observability & Tracing](#observability--tracing)
-- [24/7 Cloud Deployment Guide](#247-cloud-deployment-guide)
 
 ---
 
@@ -196,45 +195,39 @@ Runs the CLI with token streaming.
 
 ---
 
-## Observability & Tracing
+## 📊 Observability & Tracing
 
-LangSmith tracing is integrated for step tracking, tool calls, and performance monitoring under the configured project name.
+LangSmith tracing is seamlessly integrated. Set `LANGCHAIN_TRACING_V2=true` in your `.env` to monitor agent step tracking, tool execution latency, and overall LLM performance under your configured LangChain project name.
 
 ---
 
-## 24/7 Cloud Deployment Guide
+## ⚠️ Important Disclaimer
 
-To run `uni_agent_ntfy.py` continuously 24/7 without needing to manually run the script on your computer, you can deploy it as a background service.
+**This is an unofficial, community-driven project.** 
+It is not affiliated with, endorsed by, or connected to the University of Central Punjab (UCP) in any way. 
 
-### Option 1: Systemd Service (Linux VPS / Oracle Cloud / AWS EC2)
+- **Privacy First:** Your university credentials (`UCP_EMAIL`, `UCP_PASSWORD`) never leave your local machine. They are exclusively used by the local Playwright instance to authenticate directly with Microsoft SSO.
+- **No Cloud Database:** All scraped data is stored locally on your machine in `uni_data.db`.
+- **Use at Your Own Risk:** This tool automates portal interactions. The developers are not responsible for any account locks, missed deadlines, or portal availability issues.
 
-Create a service configuration `/etc/systemd/system/ucp-agent.service`:
+---
 
-```ini
-[Unit]
-Description=UCP Agent 24/7 Mobile Push Listener
-After=network.target
+## 🤝 Contributing
 
-[Service]
-Type=simple
-User=ubuntu
-WorkingDirectory=/path/to/project
-ExecStart=/path/to/venv/bin/python uni_agent_ntfy.py
-Restart=always
-RestartSec=5
+Contributions, issues, and feature requests are welcome!
+Feel free to check the [issues page](../../issues) if you want to contribute.
 
-[Install]
-WantedBy=multi-user.target
-```
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-Enable and start the service:
+---
 
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable ucp-agent
-sudo systemctl start ucp-agent
-```
+## 📄 License
 
-### Option 2: Docker Container / Background Worker
+Distributed under the MIT License. See `LICENSE` for more information.
 
-Deploy `uni_agent_ntfy.py` as a background worker process on hosting providers like Render, Railway, or Fly.io so it continuously listens to the ntfy long-polling stream 24/7.
+---
+*Built with ❤️ using LangGraph and Playwright.*
