@@ -224,10 +224,4 @@ Feel free to check the [issues page](../../issues) if you want to contribute.
 5. Open a Pull Request
 
 ---
-
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-*Built with ❤️ using LangGraph and Playwright.*
+*Built with ❤️ using LangChain and LangGraph.*
