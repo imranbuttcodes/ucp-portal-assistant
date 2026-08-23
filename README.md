@@ -1,6 +1,6 @@
 # UCP Portal Assistant
 
-[![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/) [![Framework](https://img.shields.io/badge/Framework-LangGraph%20%7C%20LangChain-orange.svg)](https://langchain-ai.github.io/langgraph/) [![LLM Provider](https://img.shields.io/badge/LLM-Groq%20%7C%20DeepSeek%20%7C%20Ollama-green.svg)](https://groq.com/) [![Push System](https://img.shields.io/badge/Push%20Notifications-ntfy.sh%202--Way-purple.svg)](https://ntfy.sh) [![Database](https://img.shields.io/badge/Database-SQLite%20%2B%20Playwright-yellow.svg)](https://playwright.dev/) [![Observability](https://img.shields.io/badge/Observability-LangSmith-red.svg)](https://smith.langchain.com/)
+[![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/) [![Framework](https://img.shields.io/badge/Framework-LangGraph%20%7C%20LangChain-orange.svg)](https://langchain-ai.github.io/langgraph/) [![LLM Provider](https://img.shields.io/badge/LLM-Groq-green.svg)](https://groq.com/) [![Push System](https://img.shields.io/badge/Push%20Notifications-ntfy.sh%202--Way-purple.svg)](https://ntfy.sh) [![Database](https://img.shields.io/badge/Database-SQLite%20%2B%20Playwright-yellow.svg)](https://playwright.dev/) [![Observability](https://img.shields.io/badge/Observability-LangSmith-red.svg)](https://smith.langchain.com/)
 
 UCP Portal Assistant is an agentic AI system for managing University of Central Punjab (UCP) Student Portal data.
 
@@ -74,7 +74,7 @@ The project's LLM bindings are managed in `models.py`.
 
 You can switch models in `models.py` by changing the provider parameter:
 ```python
-# Select from 'groq', 'deepseek', or 'ollama'
+# The bot explicitly uses Groq as the fast LLM inference provider
 llm, llm_with_tools = get_llm(provider="groq")
 ```
 
@@ -86,7 +86,7 @@ llm, llm_with_tools = get_llm(provider="groq")
 - **Proactive Background Alerts**: Uses `APScheduler` to push class reminders 5 minutes before they start and asks for feedback exactly when they finish.
 - **State Injection**: Proactive alerts are injected directly into the LLM's checkpointer memory so the AI remembers the context when you reply.
 - **Memory Pruning**: Automatic conversation summarization for long threads.
-- **Multi-Provider Support**: Compatible with Groq (`openai/gpt-oss-120b`), DeepSeek (`deepseek-chat`), and Ollama (`llama3.2:3b`).
+- **Lightning Fast Inference**: Powered by Groq's LPU inference engine for near-instant responses.
 - **File Download Support**: Downloads uploaded course materials directly to local storage.
 
 ---
@@ -136,6 +136,15 @@ UCP-Portal-Assistant/
 
 ### Installation Steps
 
+1. **Fork the Repository:** Click the "Fork" button at the top right of this repository to create your own copy (this is required for the auto-updater CD pipeline to work for your own server).
+2. **Clone your Fork:**
+```bash
+git clone https://github.com/<your_github_username>/ucp-portal-assistant.git
+cd ucp-portal-assistant
+```
+
+3. **Install Dependencies:**
+
 **For Mac/Linux:**
 ```bash
 python3 -m venv .venv
@@ -165,7 +174,6 @@ UCP_PASSWORD=your_portal_password_here
 
 # LLM Provider API Keys
 GROQ_API_KEY=your_groq_api_key_here
-DEEPSEEK_API_KEY=your_deepseek_api_key_here
 
 # Mobile Push Notification Settings (ntfy.sh)
 NTFY_TOPIC=your_ntfy_topic_here
@@ -265,7 +273,7 @@ Once logged into the server, run these commands one by one to download the code 
 sudo apt update && sudo apt upgrade -y
 
 # 2. Download the project code from GitHub
-git clone https://github.com/imranbuttcodes/ucp-portal-assistant.git
+git clone https://github.com/<your_github_username>/ucp-portal-assistant.git
 cd ucp-portal-assistant
 
 # 3. Install Python virtual environment tools
@@ -358,7 +366,7 @@ Instead of logging in to pull code manually every time you push to GitHub, we cr
 2. Open the cron editor: `crontab -e` *(Select `nano` if it asks you to choose an editor).*
 3. Scroll to the very bottom and add this exact line:
    ```bash
-   * * * * * /home/imranbuttcodes/ucp-portal-assistant/auto_updater.sh >> /home/imranbuttcodes/ucp-portal-assistant/updater.log 2>&1
+   * * * * * /home/your_username/ucp-portal-assistant/auto_updater.sh >> /home/your_username/ucp-portal-assistant/updater.log 2>&1
    ```
 4. Save and exit (`CTRL+X`, `Y`, `Enter`). 
 
