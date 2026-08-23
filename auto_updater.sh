@@ -1,5 +1,6 @@
 #!/bin/bash
 
+{
 # Change to the directory where this script is located
 cd "$(dirname "$0")"
 
@@ -24,8 +25,9 @@ if [ "$LOCAL" != "$REMOTE" ]; then
     # First, kill the existing session if it exists
     tmux kill-session -t ucpbot 2>/dev/null
     
-    # Start a new detached session by calling the virtual environment Python directly
-    tmux new -d -s ucpbot '.venv/bin/python uni_agent_ntfy.py'
+    # Start a new detached session with full logging to catch any errors
+    tmux new -d -s ucpbot 'bash -c "cd /home/imranbuttcodes/ucp-portal-assistant && source .venv/bin/activate && python uni_agent_ntfy.py >> bot_crash.log 2>&1"'
     
     echo "Bot successfully updated and restarted."
 fi
+}
