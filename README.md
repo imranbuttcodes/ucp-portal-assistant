@@ -375,7 +375,7 @@ If you need to see what the bot is doing, or if you need to restart it:
 Instead of logging in to pull code manually every time you push to GitHub, we created an `auto_updater.sh` script that does it for you. You just need to activate it once using a Linux cron job:
 1. SSH into the server: `ssh username@IP_ADDRESS`
 2. Open the cron editor: `crontab -e` *(Select `nano` if it asks you to choose an editor).*
-3. Scroll to the very bottom and add this exact line:
+3. Paste this exact line at the very bottom (Replace `your_username` with your **Azure Virtual Machine username**, not your GitHub username. You can type `whoami` in the terminal to find it!):
    ```bash
    * * * * * /home/your_username/ucp-portal-assistant/auto_updater.sh >> /home/your_username/ucp-portal-assistant/updater.log 2>&1
    ```
