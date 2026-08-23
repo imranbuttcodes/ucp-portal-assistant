@@ -83,6 +83,8 @@ llm, llm_with_tools = get_llm(provider="groq")
 ## Features
 
 - **2-Way Push Communication**: Receive push notifications and send replies using ntfy.
+- **Proactive Background Alerts**: Uses `APScheduler` to push class reminders 5 minutes before they start and asks for feedback exactly when they finish.
+- **State Injection**: Proactive alerts are injected directly into the LLM's checkpointer memory so the AI remembers the context when you reply.
 - **Memory Pruning**: Automatic conversation summarization for long threads.
 - **Multi-Provider Support**: Compatible with Groq (`openai/gpt-oss-120b`), DeepSeek (`deepseek-chat`), and Ollama (`llama3.2:3b`).
 - **File Download Support**: Downloads uploaded course materials directly to local storage.
@@ -209,6 +211,158 @@ It is not affiliated with, endorsed by, or connected to the University of Centra
 - **Privacy First:** Your university credentials (`UCP_EMAIL`, `UCP_PASSWORD`) never leave your local machine. They are exclusively used by the local Playwright instance to authenticate directly with Microsoft SSO.
 - **No Cloud Database:** All scraped data is stored locally on your machine in `uni_data.db`.
 - **Use at Your Own Risk:** This tool automates portal interactions. The developers are not responsible for any account locks, missed deadlines, or portal availability issues.
+
+
+
+# ☁️ Azure Cloud Deployment Guide
+
+This guide covers exactly how to deploy the **UCP Portal Assistant** to run 24/7 in the cloud, completely for free using the **GitHub Student Developer Pack** and **Microsoft Azure**.
+
+---
+
+## 1. Create a Free Azure Virtual Machine
+Since the bot uses Playwright (a headless browser) and WebSockets (for real-time push notifications), serverless platforms like Vercel or AWS Lambda will not work. A raw Linux Virtual Machine (VM) is required.
+
+1. Go to the [GitHub Student Developer Pack](https://education.github.com/pack) and activate the **Microsoft Azure** offer to get $100 in free credit and free 12-month services (no credit card required).
+2. Log into the [Azure Portal](https://portal.azure.com/) using your university email (`@ucp.edu.pk`).
+3. Search for **Virtual machines** and click **Create -> Azure virtual machine**.
+
+### Virtual Machine Settings:
+- **Subscription:** Azure for Students
+- **Resource group:** Create a new one (e.g., `ucp-bot-rg`)
+- **Virtual machine name:** `ucp-bot-server`
+- **Region:** **IMPORTANT:** Azure heavily restricts student accounts. If you get a `RequestDisallowedByAzure` error, you must select a region allowed by your specific policy. Safe bets are often **Central India**, **UAE North**, **Central US**, or **West Europe**.
+- **Availability options:** `No infrastructure redundancy required` (This unlocks the free tier sizes).
+- **Image:** Ubuntu Server 24.04 LTS
+- **Size:** Click "See all sizes" and search for **`B1`**. Select **`Standard_B1s (free services eligible)`**.
+- **Authentication type:** Password (create a username and a strong 12-character password).
+- **Inbound port rules:** Allow selected ports -> **SSH (22)**.
+
+Click **Review + create** and then **Create**. Wait 2-3 minutes for deployment to finish, click **Go to resource**, and copy your **Public IP address**.
+
+---
+
+## 2. Connect to the Server
+Open your laptop's terminal (Command Prompt, PowerShell, or Mac Terminal) and SSH into the new server:
+
+```bash
+ssh your_username@YOUR_PUBLIC_IP_ADDRESS
+```
+*(Type `yes` if prompted, then enter your password. The password will be invisible as you type it).*
+
+---
+
+## 3. Install the Bot
+Once logged into the server, run these commands one by one to download the code and install dependencies:
+
+```bash
+# 1. Update the Linux server
+sudo apt update && sudo apt upgrade -y
+
+# 2. Download the project code from GitHub
+git clone https://github.com/imranbuttcodes/ucp-portal-assistant.git
+cd ucp-portal-assistant
+
+# 3. Install Python virtual environment tools
+sudo apt install python3-venv -y
+
+# 4. Create and activate a clean Python environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 5. Install the required Python packages
+pip install -r requirements.txt
+
+# 6. Install Playwright and its Linux OS dependencies
+playwright install chromium
+playwright install-deps
+
+# 7. Set the server timezone to your local time (e.g., Pakistan)
+sudo timedatectl set-timezone Asia/Karachi
+```
+
+---
+
+## 4. Add Your Passwords (.env)
+Because your GitHub repository is public, it doesn't contain your `.env` file for security reasons. You must recreate it on the server:
+
+1. Open the file editor in the terminal:
+   ```bash
+   nano .env
+   ```
+2. Paste all of your secrets (copy them from your local laptop's `.env` file):
+   ```env
+   UCP_EMAIL="your_email@ucp.edu.pk"
+   UCP_PASSWORD="your_portal_password"
+   GROQ_API_KEY="gsk_..."
+   NTFY_TOPIC="your_secret_topic"
+---
+
+## 5. Bypass Microsoft Security (Session Injection)
+Because your Azure server is in a massive data center (e.g., Central India), Microsoft 365 will flag the headless login attempt as a "suspicious sign-in" and throw a security block or MFA challenge, which breaks the headless browser. 
+
+To bypass this professionally, we inject your local, pre-authenticated session into the server:
+1. On your **local laptop**, open `portal_session.json` in your code editor and copy ALL the text.
+2. In your **server terminal**, open the session file (if it exists, delete its current contents):
+   ```bash
+   nano portal_session.json
+   ```
+3. Paste your copied local session into the terminal.
+4. Save and exit (**`CTRL + X`**, then **`Y`**, then **`Enter`**).
+
+*(Note: Microsoft uses rolling sessions, so this injected cookie should stay valid for the entire semester as long as the bot remains active).*
+
+---
+
+## 6. Run the Bot Forever (24/7)
+If you simply run the script normally, it will shut down as soon as you close your laptop. To keep it running forever, we use a background session manager called `tmux`.
+
+```bash
+# 1. Start a new background session named "ucpbot"
+tmux new -s ucpbot
+
+# 2. Run the agent
+python uni_agent_ntfy.py
+```
+
+Wait until the terminal says `[Connected] Active & listening...`. 
+Now, press **`CTRL + B`**, let go of both keys, and then press **`D`**. 
+
+**Your bot is now running in the background!** You can close your laptop entirely, disconnect from WiFi, and the bot will stay alive 24/7 on the Azure server.
+
+---
+
+## 🛠️ Maintenance & Essential Commands
+
+### How to restart the bot or view logs:
+If you need to see what the bot is doing, or if you need to restart it:
+1. SSH into the server: `ssh username@IP_ADDRESS`
+2. Re-attach to your background session:
+   ```bash
+   tmux attach -t ucpbot
+   ```
+3. To stop the bot, press `CTRL + C`.
+4. Run it again with `python uni_agent_ntfy.py`.
+5. Detach again with `CTRL + B` then `D`.
+
+### How to update your code automatically (Continuous Deployment):
+Instead of logging in to pull code manually every time you push to GitHub, we created an `auto_updater.sh` script that does it for you. You just need to activate it once using a Linux cron job:
+1. SSH into the server: `ssh username@IP_ADDRESS`
+2. Open the cron editor: `crontab -e` *(Select `nano` if it asks you to choose an editor).*
+3. Scroll to the very bottom and add this exact line:
+   ```bash
+   * * * * * /home/imranbuttcodes/ucp-portal-assistant/auto_updater.sh >> /home/imranbuttcodes/ucp-portal-assistant/updater.log 2>&1
+   ```
+4. Save and exit (`CTRL+X`, `Y`, `Enter`). 
+
+Now, every 60 seconds, the server will check GitHub. If you pushed new code, it will automatically pull it, install any new dependencies, and restart your bot!
+
+### How to temporarily stop the server:
+The `B1s` server is extremely cheap and easily covered by your $100 student credit. However, if you want to turn it off to save credits:
+1. Go to the **Azure Portal** in your web browser.
+2. Go to the Virtual Machine overview page.
+3. Click the **Stop** button at the top to deallocate it.
+*Note: When you click **Start** later, Azure might assign a new Public IP address. You will also have to SSH back in and re-run the `tmux` commands, as turning off the server kills all running programs.*
 
 ---
 

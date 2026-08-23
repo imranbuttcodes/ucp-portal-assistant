@@ -14,7 +14,7 @@ def get_llm(provider: str = "groq", temperature: float = 0.0):
     provider_clean = provider.lower().strip()
     
     if provider_clean == "groq":
-        # Groq Flagship OpenAI GPT-OSS 120B
+        # Groq Flagship OpenAI GPT-OSS 120B 
         llm = ChatGroq(
             model="openai/gpt-oss-120b",
             api_key=os.getenv("GROQ_API_KEY"),

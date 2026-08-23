@@ -14,7 +14,8 @@ from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
 
-from ucp_tools import tools
+from ucp_tools import tools, db_manager
+from proactive_alerts import start_proactive_scheduler
 from prompts import SYSTEM_PROMPT_NTFY, SUMMARY_PROMPT_TEMPLATE
 from models import llm, llm_with_tools
 
@@ -150,6 +151,20 @@ def listen_and_respond():
     
     # Thread config for Checkpointer MemorySaver
     config = {"configurable": {"thread_id": NTFY_TOPIC}}
+    
+    def handle_proactive_push(msg: str, title: str):
+        # 1. Send the push notification to your phone
+        send_ntfy_push(msg, title=title)
+        
+        # 2. Inject the message into the LLM's memory so it remembers asking you!
+        try:
+            app.update_state(config, {"messages": [AIMessage(content=msg)]})
+            print("[Memory] Successfully injected proactive message into LLM context.")
+        except Exception as e:
+            print(f"[Memory Error] Could not inject state: {e}")
+
+    # Start Proactive Background Alerts using our memory-aware wrapper
+    scheduler = start_proactive_scheduler(db_manager, handle_proactive_push)
     
     while True:
         try:
