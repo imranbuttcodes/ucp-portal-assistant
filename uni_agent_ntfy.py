@@ -166,6 +166,9 @@ def listen_and_respond():
     # Start Proactive Background Alerts using our memory-aware wrapper
     scheduler = start_proactive_scheduler(db_manager, handle_proactive_push)
     
+    # Notify the user that the system has successfully booted up
+    send_ntfy_push("System Online: Bot has been updated and is ready for commands! 🚀", title="System Ready")
+    
     while True:
         try:
             req = urllib.request.Request(stream_url)
