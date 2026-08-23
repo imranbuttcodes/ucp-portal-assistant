@@ -18,19 +18,24 @@ The system connects to the portal using Playwright web automation, caches record
 - [Installation & Setup](#installation--setup)
 - [Configuration (.env)](#configuration-env)
 - [Usage Guide](#usage-guide)
-- [Observability & Tracing](#observability--tracing)
+- [Observability & Tracing](#observability)
+- [Important Disclaimer](#disclaimer)
+- [Azure Cloud Deployment Guide](#azure)
+- [Maintenance & Essential Commands](#maintenance)
+- [Contributing](#contributing)
 
 ---
 
 ## Architecture Overview
 
-The system consists of five main components:
+The system consists of six main components:
 
 1. **Scraper Layer (`ucp_scraper.py`)**: Uses Playwright to log into the UCP Portal and fetch student records (dashboard, timetables, transcripts, course materials, invoices).
 2. **Database & Cache Manager (`uni_db_manager.py`)**: Caches portal data in a local SQLite database (`uni_data.db`).
 3. **Tool Registry (`ucp_tools.py`)**: Exposes 11 tools with JSON schema docstrings for LLM function calling.
 4. **Agent Engine (`uni_agent_ntfy.py` / `uni_agent_test.py`)**: Implements a LangGraph StateGraph workflow with entry-point memory summarization, conditional tool execution (`tools_condition`), ToolNode, and checkpointer state memory (`MemorySaver`).
 5. **2-Way Mobile Interface**: Listens on ntfy.sh long-polling JSON streams to send push notification replies.
+6. **Proactive Alert Engine (`proactive_alerts.py`)**: Runs an APScheduler background process to monitor upcoming classes and injects push reminders with state directly into the LLM's memory.
 
 ---
 
@@ -87,7 +92,7 @@ llm, llm_with_tools = get_llm(provider="groq")
 - **State Injection**: Proactive alerts are injected directly into the LLM's checkpointer memory so the AI remembers the context when you reply.
 - **Memory Pruning**: Automatic conversation summarization for long threads.
 - **Lightning Fast Inference**: Powered by Groq's LPU inference engine for near-instant responses.
-- **File Download Support**: Downloads uploaded course materials directly to local storage.
+- **Mobile File Attachments & Caching**: Downloads course materials to the server, caches them to save bandwidth, and pushes them directly to your phone as native file attachments!
 
 ---
 
@@ -180,7 +185,7 @@ NTFY_TOPIC=your_ntfy_topic_here
 BOT_TITLE="your_bot_title_here"
 BOT_TAG=your_bot_tag_here
 
-# LangSmith Observability & Tracing
+# LangSmith Observability & Tracing (Optional)
 LANGCHAIN_TRACING_V2=true
 LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
 LANGCHAIN_API_KEY=your_langchain_api_key_here
@@ -210,12 +215,14 @@ Runs the CLI with token streaming.
 
 ---
 
+<a id="observability"></a>
 ## 📊 Observability & Tracing
 
 LangSmith tracing is seamlessly integrated. Set `LANGCHAIN_TRACING_V2=true` in your `.env` to monitor agent step tracking, tool execution latency, and overall LLM performance under your configured LangChain project name.
 
 ---
 
+<a id="disclaimer"></a>
 ## ⚠️ Important Disclaimer
 
 **This is an unofficial, community-driven project.** 
@@ -227,6 +234,7 @@ It is not affiliated with, endorsed by, or connected to the University of Centra
 
 
 
+<a id="azure"></a>
 # ☁️ Azure Cloud Deployment Guide
 
 This guide covers exactly how to deploy the **UCP Portal Assistant** to run 24/7 in the cloud, completely for free using the **GitHub Student Developer Pack** and **Microsoft Azure**.
@@ -347,6 +355,7 @@ Now, press **`CTRL + B`**, let go of both keys, and then press **`D`**.
 
 ---
 
+<a id="maintenance"></a>
 ## 🛠️ Maintenance & Essential Commands
 
 ### How to restart the bot or view logs:
@@ -381,6 +390,7 @@ The `B1s` server is extremely cheap and easily covered by your $100 student cred
 
 ---
 
+<a id="contributing"></a>
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome!
