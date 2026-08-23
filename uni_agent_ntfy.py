@@ -12,7 +12,8 @@ from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, System
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver
+import sqlite3
 
 from ucp_tools import tools, db_manager
 from proactive_alerts import start_proactive_scheduler
@@ -30,8 +31,11 @@ sent_messages_cache = set()
 
 def send_ntfy_push(message: str, title: str = BOT_TITLE, priority: str = "default", tags: str = BOT_TAG):
     """Sends a push notification reply back to the ntfy topic using JSON POST."""
+    if not message or not str(message).strip():
+        message = " Action completed."
+        
     url = "https://ntfy.sh"
-    sent_messages_cache.add(message.strip())
+    sent_messages_cache.add(str(message).strip())
     
     payload = {
         "topic": NTFY_TOPIC,
@@ -114,7 +118,10 @@ def agent_node(state: AgentState):
     return {"messages": [response]}
 
 # CHECKPOINTER MEMORY
-checkpointer = MemorySaver()
+# Setup persistent sqlite connection for memory
+conn = sqlite3.connect("memory.db", check_same_thread=False)
+checkpointer = SqliteSaver(conn)
+checkpointer.setup()
 
 # LANGGRAPH STATEGRAPH WORKFLOW
 workflow = StateGraph(AgentState)
@@ -213,6 +220,7 @@ def listen_and_respond():
                         continue
                     except Exception as e:
                         print(f"[Error processing command]: {e}")
+                        send_ntfy_push(f"⚠️ **System Error:** The bot encountered an issue processing your request. \n\n*Details: {e}*", title="Bot Error")
                         
         except (urllib.error.URLError, TimeoutError, Exception) as e:
             print(f"[Stream disconnected, reconnecting in 3 seconds...]: {e}")

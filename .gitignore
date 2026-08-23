@@ -15,6 +15,7 @@ portal_session.json
 *.db-wal
 *.db-shm
 uni_data.db
+memory.db
 
 # Python Bytecode & Cache
 __pycache__/

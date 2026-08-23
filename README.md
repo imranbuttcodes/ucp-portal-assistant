@@ -33,7 +33,7 @@ The system consists of six main components:
 1. **Scraper Layer (`ucp_scraper.py`)**: Uses Playwright to log into the UCP Portal and fetch student records (dashboard, timetables, transcripts, course materials, invoices).
 2. **Database & Cache Manager (`uni_db_manager.py`)**: Caches portal data in a local SQLite database (`uni_data.db`).
 3. **Tool Registry (`ucp_tools.py`)**: Exposes 11 tools with JSON schema docstrings for LLM function calling.
-4. **Agent Engine (`uni_agent_ntfy.py` / `uni_agent_test.py`)**: Implements a LangGraph StateGraph workflow with entry-point memory summarization, conditional tool execution (`tools_condition`), ToolNode, and checkpointer state memory (`MemorySaver`).
+4. **Agent Engine (`uni_agent_ntfy.py` / `uni_agent_test.py`)**: Implements a LangGraph StateGraph workflow with entry-point memory summarization, conditional tool execution (`tools_condition`), ToolNode, and persistent checkpointer state memory (`SqliteSaver`).
 5. **2-Way Mobile Interface**: Listens on ntfy.sh long-polling JSON streams to send push notification replies.
 6. **Proactive Alert Engine (`proactive_alerts.py`)**: Runs an APScheduler background process to monitor upcoming classes and injects push reminders with state directly into the LLM's memory.
 
@@ -90,7 +90,9 @@ llm, llm_with_tools = get_llm(provider="groq")
 - **2-Way Push Communication**: Receive push notifications and send replies using ntfy.
 - **Proactive Background Alerts**: Uses `APScheduler` to push class reminders 5 minutes before they start and asks for feedback exactly when they finish.
 - **State Injection**: Proactive alerts are injected directly into the LLM's checkpointer memory so the AI remembers the context when you reply.
-- **Memory Pruning**: Automatic conversation summarization for long threads.
+- **Persistent Memory (SQLite)**: Saves conversation history in a resilient checkpointer database (`memory.db`), so the AI perfectly remembers context even after a server restart.
+- **Memory Pruning**: Automatic conversation summarization for long threads to minimize LLM token usage.
+- **Smart Error Recovery**: Intercepts API rate limits and execution errors, pushing diagnostic alerts directly to your phone instead of crashing silently.
 - **Lightning Fast Inference**: Powered by Groq's LPU inference engine for near-instant responses.
 - **Mobile File Attachments & Caching**: Downloads course materials to the server, caches them to save bandwidth, and pushes them directly to your phone as native file attachments!
 
