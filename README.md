@@ -136,13 +136,18 @@ UCP-Portal-Assistant/
 
 ### Installation Steps
 
+**For Mac/Linux:**
 ```bash
-git clone <repository_url>
-cd <repository_directory>
-
 python3 -m venv .venv
 source .venv/bin/activate
+pip install -r requirements.txt
+playwright install chromium
+```
 
+**For Windows:**
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
 playwright install chromium
 ```
@@ -298,8 +303,10 @@ Because your GitHub repository is public, it doesn't contain your `.env` file fo
    NTFY_TOPIC="your_secret_topic"
 ---
 
-## 5. Bypass Microsoft Security (Session Injection)
-Because your Azure server is in a massive data center (e.g., Central India), Microsoft 365 will flag the headless login attempt as a "suspicious sign-in" and throw a security block or MFA challenge, which breaks the headless browser. 
+## 5. Bypass Microsoft Security (Optional - "Pass-the-Cookie" Trick)
+*Note: Try running the bot normally first. ONLY do this step if the bot throws an "Authentication loop detected" or "Session expired" error.*
+
+Because your Azure server is in a massive data center (e.g., Central India), Microsoft 365 might flag the headless login attempt as a "suspicious sign-in" and throw a security block or MFA challenge, which breaks the headless browser. 
 
 To bypass this professionally, we inject your local, pre-authenticated session into the server:
 1. On your **local laptop**, open `portal_session.json` in your code editor and copy ALL the text.
