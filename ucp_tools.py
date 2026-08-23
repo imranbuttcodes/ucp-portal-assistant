@@ -1,5 +1,6 @@
 import os
 import json
+import urllib.request
 from datetime import datetime
 from langchain_core.tools import tool
 from uni_db_manager import UniDatabaseManager
@@ -131,7 +132,26 @@ def download_file(course_name: str, filename: str) -> str:
                 print(f"\n[Agent] Triggering physical download for: {filename}")
                 filepath = db_manager.scraper.download_specific_file(m.download_url, filename)
                 if filepath:
-                    return f"SUCCESS: File physically saved to {filepath}"
+                    ntfy_topic = os.getenv("NTFY_TOPIC")
+                    push_status = ""
+                    if ntfy_topic:
+                        try:
+                            with open(filepath, 'rb') as f:
+                                req = urllib.request.Request(
+                                    f"https://ntfy.sh/{ntfy_topic}",
+                                    data=f.read(),
+                                    headers={
+                                        "Title": f"File Downloaded: {filename}",
+                                        "Filename": filename,
+                                        "Tags": "open_file_folder"
+                                    },
+                                    method="PUT"
+                                )
+                                with urllib.request.urlopen(req, timeout=30) as resp:
+                                    push_status = " (and sent to your phone! 📱)"
+                        except Exception as e:
+                            push_status = f" (but failed to send to phone: {e})"
+                    return f"SUCCESS: File physically saved to {filepath}{push_status}"
                 else:
                     return "FAILED: Scraper encountered an error downloading the file."
         return "File not found in course materials."
