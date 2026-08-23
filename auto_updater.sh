@@ -24,8 +24,8 @@ if [ "$LOCAL" != "$REMOTE" ]; then
     # First, kill the existing session if it exists
     tmux kill-session -t ucpbot 2>/dev/null
     
-    # Start a new detached session
-    tmux new -d -s ucpbot 'source .venv/bin/activate && python uni_agent_ntfy.py'
+    # Start a new detached session by calling the virtual environment Python directly
+    tmux new -d -s ucpbot '.venv/bin/python uni_agent_ntfy.py'
     
     echo "Bot successfully updated and restarted."
 fi
