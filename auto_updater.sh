@@ -25,8 +25,8 @@ if [ "$LOCAL" != "$REMOTE" ]; then
     # First, kill the existing session if it exists
     tmux kill-session -t ucpbot 2>/dev/null
     
-    # Start a new detached session with full logging to catch any errors
-    tmux new -d -s ucpbot 'bash -c "cd /home/imranbuttcodes/ucp-portal-assistant && source .venv/bin/activate && python uni_agent_ntfy.py >> bot_crash.log 2>&1"'
+    # Start a new detached session and use 'tee' to print logs to the screen AND save them to bot_crash.log
+    tmux new -d -s ucpbot 'bash -c "cd /home/imranbuttcodes/ucp-portal-assistant && source .venv/bin/activate && python uni_agent_ntfy.py 2>&1 | tee -a bot_crash.log"';
     
     echo "Bot successfully updated and restarted."
 fi
