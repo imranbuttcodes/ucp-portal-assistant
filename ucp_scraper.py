@@ -444,6 +444,11 @@ class UCPPortalScraper:
         safe_filename = filename.replace('/', '_').replace('\\', '_').replace(':', '_')
         filepath = os.path.abspath(os.path.join(download_dir, safe_filename))
         
+        # Cache check: if it's already downloaded, return immediately!
+        if os.path.exists(filepath):
+            print(f"[Download] File already exists locally, skipping portal download: {safe_filename}")
+            return filepath
+            
         print(f"[Download] Fetching specific file: {safe_filename}")
         file_res = self._request(download_url, stream=True)
         

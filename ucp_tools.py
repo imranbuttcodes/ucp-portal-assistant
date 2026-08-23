@@ -137,13 +137,14 @@ def download_file(course_name: str, filename: str) -> str:
                     if ntfy_topic:
                         try:
                             with open(filepath, 'rb') as f:
+                                bot_tag = os.getenv('BOT_TAG', 'ucp_bot_response').strip().strip('"').strip("'")
                                 req = urllib.request.Request(
                                     f"https://ntfy.sh/{ntfy_topic}",
                                     data=f.read(),
                                     headers={
                                         "Title": f"File Downloaded: {filename}",
                                         "Filename": filename,
-                                        "Tags": "open_file_folder"
+                                        "Tags": f"open_file_folder,{bot_tag}"
                                     },
                                     method="PUT"
                                 )
