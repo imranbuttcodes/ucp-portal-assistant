@@ -6,6 +6,7 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
+from langsmith import traceable
 
 load_dotenv()
 
@@ -90,6 +91,7 @@ class UCPPortalScraper:
             
         return response
 
+    @traceable(name="scraper.get_dashboard")
     def get_dashboard(self) -> dict:
         print("[API] Fetching Dashboard...")
         response = self._request("/student/dashboard")
@@ -144,6 +146,7 @@ class UCPPortalScraper:
 
         return {"profile": profile, "courses": courses}
 
+    @traceable(name="scraper.get_profile")
     def get_profile(self) -> dict:
         print("[API] Fetching Detailed Profile...")
         response = self._request("/student/profile")
@@ -241,6 +244,7 @@ class UCPPortalScraper:
                 
         return results
 
+    @traceable(name="scraper.get_timetable")
     def get_timetable(self) -> dict:
         print("[API] Fetching Timetable...")
         response = self._request("/student/class/schedule")
@@ -272,6 +276,7 @@ class UCPPortalScraper:
             
         return schedule
 
+    @traceable(name="scraper.get_notifications")
     def get_notifications(self) -> list:
         print("[API] Fetching Notifications...")
         response = self._request("/student/notifications")
@@ -296,6 +301,7 @@ class UCPPortalScraper:
                 
         return notifications
 
+    @traceable(name="scraper.get_invoices")
     def get_invoices(self) -> list:
         print("[API] Fetching Invoices...")
         response = self._request("/student/invoices")
@@ -305,6 +311,7 @@ class UCPPortalScraper:
             return self._parse_table(table)
         return []
 
+    @traceable(name="scraper.get_datesheet")
     def get_datesheet(self) -> list:
         print("[API] Fetching Exam Datesheet...")
         response = self._request("/student/exam/datesheet")
@@ -332,6 +339,7 @@ class UCPPortalScraper:
             rows.append(row)
         return rows
 
+    @traceable(name="scraper.get_course_details")
     def get_course_details(self, course_url: str) -> dict:
         course_id = course_url.rstrip('/').split('/')[-1]
         print(f"[API] Fetching Course Details for ID: {course_id}")

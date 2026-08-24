@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import pytz
 from apscheduler.schedulers.background import BackgroundScheduler
 import traceback
+from langsmith import traceable
 
 def start_proactive_scheduler(db_manager, send_ntfy_push_func):
     """
@@ -14,6 +15,7 @@ def start_proactive_scheduler(db_manager, send_ntfy_push_func):
     # Keys will be something like: "pre-class:2026-08-23:08:00 AM" or "post-class:2026-08-23:09:30 AM"
     sent_alerts = set()
 
+    @traceable(name="proactive_alerts.check_timetable_alerts")
     def check_timetable_alerts():
         try:
             # 1. Get current time in Pakistan
