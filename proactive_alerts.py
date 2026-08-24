@@ -54,15 +54,15 @@ def start_proactive_scheduler(db_manager, send_ntfy_push_func):
                     class_start_dt = tz.localize(datetime.combine(now.date(), start_time))
                     class_end_dt = tz.localize(datetime.combine(now.date(), end_time))
                     
-                    # 4. Check for Pre-class alert (5 mins before)
-                    # We check if 'now' is within a 1-minute window of (start - 5 mins)
-                    pre_class_target = class_start_dt - timedelta(minutes=5)
+                    # 4. Check for Pre-class alert (10 mins before)
+                    # We check if 'now' is within a 1-minute window of (start - 10 mins)
+                    pre_class_target = class_start_dt - timedelta(minutes=10)
                     time_diff_pre = (now - pre_class_target).total_seconds()
                     
                     pre_alert_key = f"pre-{date_str}-{start_str}-{cls.subject}"
                     
                     if 0 <= time_diff_pre < 60 and pre_alert_key not in sent_alerts:
-                        msg = f"🔔 Reminder: Your **{cls.subject}** class starts in 5 minutes (at {start_str}) in Room {cls.room}!"
+                        msg = f"🔔 Reminder: Your **{cls.subject}** class starts in 10 minutes (at {start_str}) in Room {cls.room}!"
                         send_ntfy_push_func(msg, title="Class Reminder")
                         sent_alerts.add(pre_alert_key)
                         print(f"[Proactive Alert] Sent pre-class alert for {cls.subject}")
@@ -72,7 +72,7 @@ def start_proactive_scheduler(db_manager, send_ntfy_push_func):
                     post_alert_key = f"post-{date_str}-{end_str}-{cls.subject}"
                     
                     if 0 <= time_diff_post < 60 and post_alert_key not in sent_alerts:
-                        msg = f"✅ Your **{cls.subject}** class just finished! How was it? What did you learn today?"
+                        msg = f"✅ Your **{cls.subject}** class in Room {cls.room} ({start_str} to {end_str}) just finished! How was it? What did you learn today?"
                         send_ntfy_push_func(msg, title="Class Finished")
                         sent_alerts.add(post_alert_key)
                         print(f"[Proactive Alert] Sent post-class alert for {cls.subject}")
