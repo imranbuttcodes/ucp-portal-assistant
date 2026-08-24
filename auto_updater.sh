@@ -11,8 +11,9 @@ git fetch
 LOCAL=$(git rev-parse HEAD)
 REMOTE=$(git rev-parse @{u})
 
-if [ "$LOCAL" != "$REMOTE" ]; then
-    echo "New changes detected from GitHub! Updating..."
+# Check if code changed OR if the bot crashed/server rebooted (tmux session missing)
+if [ "$LOCAL" != "$REMOTE" ] || ! tmux has-session -t ucpbot 2>/dev/null; then
+    echo "Update or Crash detected! Deploying..."
     
     # Pull new code
     git pull

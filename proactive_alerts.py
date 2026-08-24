@@ -38,8 +38,15 @@ def start_proactive_scheduler(db_manager, send_ntfy_push_func):
                 
                 # Parse times
                 try:
-                    start_time = datetime.strptime(start_str, "%I:%M %p").time()
-                    end_time = datetime.strptime(end_str, "%I:%M %p").time()
+                    try:
+                        start_time = datetime.strptime(start_str, "%I:%M %p").time()
+                    except ValueError:
+                        start_time = datetime.strptime(start_str, "%H:%M").time()
+                        
+                    try:
+                        end_time = datetime.strptime(end_str, "%I:%M %p").time()
+                    except ValueError:
+                        end_time = datetime.strptime(end_str, "%H:%M").time()
                     
                     # Create full datetime objects for today
                     class_start_dt = tz.localize(datetime.combine(now.date(), start_time))
