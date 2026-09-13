@@ -7,12 +7,8 @@ UCP Portal Assistant is an agentic AI system for managing University of Central 
 The system connects to the portal using Playwright web automation, caches records in a local SQLite database, and provides an interface via 2-way ntfy push notifications or a terminal CLI.
 
 ## Demo
-
-<video width="100%" controls>
-  <source src="demo-video.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
----
+<video controls src="demo-video.mp4" title="Demo-Video"></video>
+--
 
 ## Table of Contents
 - [Architecture Overview](#architecture-overview)
