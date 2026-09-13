@@ -8,7 +8,7 @@ The system connects to the portal using Playwright web automation, caches record
 
 ## Demo
 
-![Demo Video](./demo-video.mp4)
+<video src="./demo-video.mp4" controls="controls" width="100%"></video>
 
 ---
 
