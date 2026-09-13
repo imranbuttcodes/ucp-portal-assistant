@@ -12,6 +12,7 @@ The system connects to the portal using Playwright web automation, caches record
   <source src="demo-video.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
+
 ---
 
 ## Table of Contents
