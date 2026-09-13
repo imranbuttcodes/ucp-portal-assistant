@@ -8,12 +8,9 @@ The system connects to the portal using Playwright web automation, caches record
 
 ## Demo
 
-<video width="100%" controls>
-  <source src="demo-video.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+https://github.com/imranbuttcodes/UCP-Portal-Assistant/raw/main/demo-video.mp4
 
----
+----
 
 ## Table of Contents
 - [Architecture Overview](#architecture-overview)
