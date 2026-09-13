@@ -8,7 +8,7 @@ The system connects to the portal using Playwright web automation, caches record
 
 ## Demo
 
-https://github.com/imranbuttcodes/UCP-Portal-Assistant/raw/main/demo-video.mp4
+<video src="demo-video.mp4" controls="controls" width="100%"></video>
 
 ----
 
