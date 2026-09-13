@@ -8,8 +8,10 @@ The system connects to the portal using Playwright web automation, caches record
 
 ## Demo
 
-<video src="./demo-video.mp4" controls="controls" width="100%"></video>
-
+<video width="100%" controls>
+  <source src="demo-video.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 ---
 
 ## Table of Contents
