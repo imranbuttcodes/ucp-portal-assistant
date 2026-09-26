@@ -1,0 +1,59 @@
+name: Deploy Bot to Azure
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/ucp-assistant:latest
+
+      - name: Deploy to Azure VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AZURE_HOST }}
+          username: ${{ secrets.AZURE_USERNAME }}
+          password: ${{ secrets.AZURE_PASSWORD }}
+          script: |
+            # 1. Create a project directory on Azure
+            mkdir -p ~/ucp-bot
+            cd ~/ucp-bot
+
+            # 2. Inject the .env secrets into the Azure server
+            echo "${{ secrets.ENV_FILE_CONTENTS }}" > .env
+
+            # 3. Pull the fresh image from Docker Hub
+            docker pull ${{ secrets.DOCKER_USERNAME }}/ucp-assistant:latest
+
+            # 4. Stop and remove the old container if it exists
+            docker stop ucp-portal-assistant || true
+            docker rm ucp-portal-assistant || true
+
+            # 5. Boot the new container (using exact settings from our compose file)
+            docker run -d \
+              --name ucp-portal-assistant \
+              --restart always \
+              --env-file .env \
+              -v $(pwd)/bot_data:/app/bot_data \
+              ${{ secrets.DOCKER_USERNAME }}/ucp-assistant:latest
+
+            # 6. Clean up old unused Docker images to save disk space
+            docker image prune -af

@@ -1,0 +1,10 @@
+services:
+  ucp-bot:
+    build: .
+    container_name: ucp-portal-assistant
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      # Map the entire bot_data directory so memory and cached timetable survive restarts!
+      - ./bot_data:/app/bot_data

@@ -119,7 +119,9 @@ def agent_node(state: AgentState):
 
 # CHECKPOINTER MEMORY
 # Setup persistent sqlite connection for memory
-conn = sqlite3.connect("memory.db", check_same_thread=False)
+import os
+os.makedirs("bot_data", exist_ok=True)
+conn = sqlite3.connect("bot_data/memory.db", check_same_thread=False)
 checkpointer = SqliteSaver(conn)
 checkpointer.setup()
 

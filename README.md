@@ -269,130 +269,65 @@ Click **Review + create** and then **Create**. Wait 2-3 minutes for deployment t
 
 ---
 
-## 2. Connect to the Server
-Open your laptop's terminal (Command Prompt, PowerShell, or Mac Terminal) and SSH into the new server:
+## 2. Configure GitHub Secrets
+Since your GitHub repository is public, it doesn't contain your `.env` file for security reasons. You must pass your secrets to GitHub Actions so it can securely deploy them to Azure.
 
-```bash
-ssh your_username@YOUR_PUBLIC_IP_ADDRESS
-```
-*(Type `yes` if prompted, then enter your password. The password will be invisible as you type it).*
+Go to your **GitHub Repository -> Settings -> Secrets and variables -> Actions** and create the following secrets:
+- `DOCKER_USERNAME`: Your Docker Hub username.
+- `DOCKER_PASSWORD`: Your Docker Hub password or Access Token.
+- `AZURE_HOST`: Your Azure Virtual Machine's public IP address.
+- `AZURE_USERNAME`: Your Azure VM username (usually `azureuser`).
+- `AZURE_PASSWORD`: The password you type to log into your Azure server.
+- `ENV_FILE_CONTENTS`: The entire contents of your local `.env` file (copy and paste the whole block).
 
 ---
 
-## 3. Install the Bot
-Once logged into the server, run these commands one by one to download the code and install dependencies:
+## 3. Deploy via GitHub Actions (CI/CD)
+The bot uses a professional Docker + GitHub Actions CI/CD pipeline. You do not need to SSH into the server, install Playwright, or configure `tmux` manually!
 
+Simply commit and push your code to the `main` branch:
 ```bash
-# 1. Update the Linux server
-sudo apt update && sudo apt upgrade -y
-
-# 2. Download the project code from GitHub
-git clone https://github.com/<your_github_username>/ucp-portal-assistant.git
-cd ucp-portal-assistant
-
-# 3. Install Python virtual environment tools
-sudo apt install python3-venv -y
-
-# 4. Create and activate a clean Python environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# 5. Install the required Python packages
-pip install -r requirements.txt
-
-# 6. Install Playwright and its Linux OS dependencies
-playwright install chromium
-playwright install-deps
-
-# 7. Set the server timezone to your local time (e.g., Pakistan)
-sudo timedatectl set-timezone Asia/Karachi
+git add .
+git commit -m "Deploy bot"
+git push
 ```
 
----
-
-## 4. Add Your Passwords (.env)
-Because your GitHub repository is public, it doesn't contain your `.env` file for security reasons. You must recreate it on the server:
-
-1. Open the file editor in the terminal:
-   ```bash
-   nano .env
-   ```
-2. Paste all of your secrets (copy them from your local laptop's `.env` file):
-   ```env
-   UCP_EMAIL="your_email@ucp.edu.pk"
-   UCP_PASSWORD="your_portal_password"
-   GROQ_API_KEY="gsk_..."
-   NTFY_TOPIC="your_secret_topic"
----
-
-## 5. Bypass Microsoft Security (Optional - "Pass-the-Cookie" Trick)
-*Note: Try running the bot normally first. ONLY do this step if the bot throws an "Authentication loop detected" or "Session expired" error.*
-
-Because your Azure server is in a massive data center (e.g., Central India), Microsoft 365 might flag the headless login attempt as a "suspicious sign-in" and throw a security block or MFA challenge, which breaks the headless browser. 
-
-To bypass this professionally, we inject your local, pre-authenticated session into the server:
-1. On your **local laptop**, open `portal_session.json` in your code editor and copy ALL the text.
-2. In your **server terminal**, open the session file (if it exists, delete its current contents):
-   ```bash
-   nano portal_session.json
-   ```
-3. Paste your copied local session into the terminal.
-4. Save and exit (**`CTRL + X`**, then **`Y`**, then **`Enter`**).
-
-*(Note: Microsoft uses rolling sessions, so this injected cookie should stay valid for the entire semester as long as the bot remains active).*
+Go to the **Actions** tab on your GitHub repository. The pipeline will automatically:
+1. Build the Docker image on GitHub's servers.
+2. Push the image to Docker Hub.
+3. SSH into your Azure server.
+4. Inject your `.env` secrets.
+5. Pull the new Docker image and spin up the bot in the background.
 
 ---
 
-## 6. Run the Bot Forever (24/7)
-If you simply run the script normally, it will shut down as soon as you close your laptop. To keep it running forever, we use a background session manager called `tmux`.
-
-```bash
-# 1. Start a new background session named "ucpbot"
-tmux new -s ucpbot
-
-# 2. Run the agent
-python uni_agent_ntfy.py
-```
-
-Wait until the terminal says `[Connected] Active & listening...`. 
-Now, press **`CTRL + B`**, let go of both keys, and then press **`D`**. 
-
-**Your bot is now running in the background!** You can close your laptop entirely, disconnect from WiFi, and the bot will stay alive 24/7 on the Azure server.
+## 4. Persistent Memory (Docker Volumes)
+The Docker container maps a local `~/ucp-bot/bot_data` directory on the Azure server to persist your `uni_data.db` and `memory.db`. 
+Even when GitHub Actions destroys the old container and boots up a new one during an update, your bot will perfectly remember its scraped timetables and conversation history!
 
 ---
 
 <a id="maintenance"></a>
 ## 🛠️ Maintenance & Essential Commands
 
-### How to restart the bot or view logs:
-If you need to see what the bot is doing, or if you need to restart it:
-1. SSH into the server: `ssh username@IP_ADDRESS`
-2. Re-attach to your background session:
-   ```bash
-   tmux attach -t ucpbot
-   ```
-3. To stop the bot, press `CTRL + C`.
-4. Run it again with `python uni_agent_ntfy.py`.
-5. Detach again with `CTRL + B` then `D`.
+### How to view live logs on Azure:
+If you want to see the bot processing messages live, SSH into your Azure server (`ssh username@IP_ADDRESS`) and run:
+```bash
+docker logs -f ucp-portal-assistant
+```
 
-### How to update your code automatically (Continuous Deployment):
-Instead of logging in to pull code manually every time you push to GitHub, we created an `auto_updater.sh` script that does it for you. You just need to activate it once using a Linux cron job:
-1. SSH into the server: `ssh username@IP_ADDRESS`
-2. Open the cron editor: `crontab -e` *(Select `nano` if it asks you to choose an editor).*
-3. Paste this exact line at the very bottom (Replace `your_username` with your **Azure Virtual Machine username**, not your GitHub username. You can type `whoami` in the terminal to find it!):
-   ```bash
-   * * * * * /home/your_username/ucp-portal-assistant/auto_updater.sh >> /home/your_username/ucp-portal-assistant/updater.log 2>&1
-   ```
-4. Save and exit (`CTRL+X`, `Y`, `Enter`). 
+### How to restart the bot:
+```bash
+docker restart ucp-portal-assistant
+```
 
-Now, every 60 seconds, the server will check GitHub. If you pushed new code, it will automatically pull it, install any new dependencies, and restart your bot!
+### How to completely wipe the bot from Azure:
+If you ever want to start from a 100% clean slate (WARNING: this will permanently delete your database memory!):
+```bash
+docker rm -f ucp-portal-assistant
+rm -rf ~/ucp-bot
+```
 
-### How to temporarily stop the server:
-The `B1s` server is extremely cheap and easily covered by your $100 student credit. However, if you want to turn it off to save credits:
-1. Go to the **Azure Portal** in your web browser.
-2. Go to the Virtual Machine overview page.
-3. Click the **Stop** button at the top to deallocate it.
-*Note: When you click **Start** later, Azure might assign a new Public IP address. You will also have to SSH back in and re-run the `tmux` commands, as turning off the server kills all running programs.*
 
 ---
 

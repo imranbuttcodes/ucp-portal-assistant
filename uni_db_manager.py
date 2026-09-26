@@ -185,13 +185,15 @@ class DetailedCourseData(BaseModel):
 # ==========================================
 
 class UniDatabaseManager:
-    DB_PATH = "uni_data.db"
+    DB_PATH = "bot_data/uni_data.db"
     
     TTL_INFINITE = 9999999999
     TTL_30_DAYS = 30 * 24 * 60 * 60
     TTL_4_HOURS = 4 * 60 * 60
 
     def __init__(self, headless=True):
+        import os
+        os.makedirs(os.path.dirname(self.DB_PATH), exist_ok=True)
         self.scraper = UCPPortalScraper(headless=headless)
         self._init_db()
 
