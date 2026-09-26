@@ -43,6 +43,10 @@ jobs:
             # 2. Inject the .env secrets into the Azure server
             echo "${{ secrets.ENV_FILE_CONTENTS }}" > .env
 
+            # 2.5 Inject the pre-authenticated session cookie from your laptop!
+            mkdir -p bot_data
+            echo '${{ secrets.PORTAL_SESSION_JSON }}' > bot_data/portal_session.json
+
             # 3. Pull the fresh image from Docker Hub
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/ucp-assistant:latest
 

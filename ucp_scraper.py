@@ -27,7 +27,7 @@ class UCPPortalScraper:
             raise ValueError("[Auth Error] Missing required credentials. UCP_EMAIL and UCP_PASSWORD must be defined in your .env file.")
 
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=self.headless)
+            browser = p.chromium.launch(headless=self.headless, args=['--no-sandbox', '--disable-setuid-sandbox'])
             context = browser.new_context()
             page = context.new_page()
 
@@ -37,6 +37,9 @@ class UCPPortalScraper:
             page.locator('text="login With Microsoft"').click()
             page.fill('input[type="email"]', ucp_email, timeout=60000)
             page.click('input[type="submit"]')
+            
+            # Wait for Microsoft SSO redirect and animations to finish
+            page.wait_for_timeout(3000)
             
             page.fill('input[type="password"]', ucp_password, timeout=60000)
             page.click('input[type="submit"]')
