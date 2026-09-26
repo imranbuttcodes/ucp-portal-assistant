@@ -269,7 +269,26 @@ Click **Review + create** and then **Create**. Wait 2-3 minutes for deployment t
 
 ---
 
-## 2. Configure GitHub Secrets
+## 2. Install Docker on Azure
+Since your Azure Virtual Machine is a fresh Ubuntu installation, it does not have Docker installed by default. You must install it manually exactly once:
+
+1. SSH into your new Azure server from your laptop terminal:
+   ```bash
+   ssh your_username@YOUR_PUBLIC_IP_ADDRESS
+   ```
+2. Download and run the official Docker installation script:
+   ```bash
+   curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh
+   ```
+3. Give your user permission to run Docker commands:
+   ```bash
+   sudo usermod -aG docker $USER
+   ```
+4. **Type `exit` and hit Enter** to disconnect from the server and refresh your permissions.
+
+---
+
+## 3. Configure GitHub Secrets
 Since your GitHub repository is public, it doesn't contain your `.env` file for security reasons. You must pass your secrets to GitHub Actions so it can securely deploy them to Azure.
 
 Go to your **GitHub Repository -> Settings -> Secrets and variables -> Actions** and create the following secrets:
@@ -282,7 +301,7 @@ Go to your **GitHub Repository -> Settings -> Secrets and variables -> Actions**
 
 ---
 
-## 3. Deploy via GitHub Actions (CI/CD)
+## 4. Deploy via GitHub Actions (CI/CD)
 The bot uses a professional Docker + GitHub Actions CI/CD pipeline. You do not need to SSH into the server, install Playwright, or configure `tmux` manually!
 
 Simply commit and push your code to the `main` branch:
@@ -301,7 +320,7 @@ Go to the **Actions** tab on your GitHub repository. The pipeline will automatic
 
 ---
 
-## 4. Persistent Memory (Docker Volumes)
+## 5. Persistent Memory (Docker Volumes)
 The Docker container maps a local `~/ucp-bot/bot_data` directory on the Azure server to persist your `uni_data.db` and `memory.db`. 
 Even when GitHub Actions destroys the old container and boots up a new one during an update, your bot will perfectly remember its scraped timetables and conversation history!
 
