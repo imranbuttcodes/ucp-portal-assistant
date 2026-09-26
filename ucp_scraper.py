@@ -34,7 +34,10 @@ class UCPPortalScraper:
             page.goto(self.BASE_URL)
             page.wait_for_load_state('networkidle')
             
-            page.locator('text="login With Microsoft"').click()
+            # The university's CSS hides the button on headless/mobile views (a { display: none; }), 
+            # so we navigate directly to the SSO URL instead of trying to click it!
+            sso_url = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=4a6562df-f309-48d2-94c2-16d03a5c3644&response_type=code&redirect_uri=https%3A%2F%2Fhorizon.ucp.edu.pk%2Fauth_oauth%2Fmicrosoft%2Fsignin&prompt=select_account&scope=User.Read+Mail.Read+User.ReadWrite.All+Contacts.ReadWrite"
+            page.goto(sso_url)
             page.fill('input[type="email"]', ucp_email, timeout=60000)
             page.click('input[type="submit"]')
             

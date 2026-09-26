@@ -69,12 +69,16 @@ def summarize_node(state: AgentState):
     messages = state["messages"]
     summary = state.get("summary", "")
     
-    # Message threshold check (e.g. > 6 messages)
+    # Message threshold check
     if len(messages) > 6:
         print(f"[Memory Node] Total messages ({len(messages)}) exceeds threshold. Summarizing & pruning...")
         
-        # Keep last 4 messages, summarize older ones
-        old_msgs = messages[:-4]
+        # Safely find the last HumanMessage to avoid splitting AIMessage(tool_calls) and ToolMessage
+        keep_index = len(messages) - 2
+        while keep_index > 0 and not isinstance(messages[keep_index], HumanMessage):
+            keep_index -= 1
+            
+        old_msgs = messages[:keep_index]
         
         formatted_old = []
         for m in old_msgs:
@@ -221,8 +225,14 @@ def listen_and_respond():
                     except json.JSONDecodeError:
                         continue
                     except Exception as e:
-                        print(f"[Error processing command]: {e}")
-                        send_ntfy_push(f"⚠️ **System Error:** The bot encountered an issue processing your request. \n\n*Details: {e}*", title="Bot Error")
+                        error_msg = str(e)
+                        print(f"[Error processing command]: {error_msg}")
+                        
+                        if "413" in error_msg or "rate_limit_exceeded" in error_msg or "too large" in error_msg:
+                            friendly_msg = "⚠️ **Brain Overload:** This request required too much data and exceeded my AI memory limit! Please try asking a more specific or narrower question."
+                            send_ntfy_push(friendly_msg, title="Brain Overload")
+                        else:
+                            send_ntfy_push(f"⚠️ **System Error:** The bot encountered an issue. \n\n*Details: {error_msg[:150]}...*", title="Bot Error")
                         
         except (urllib.error.URLError, TimeoutError, Exception) as e:
             print(f"[Stream disconnected, reconnecting in 3 seconds...]: {e}")
