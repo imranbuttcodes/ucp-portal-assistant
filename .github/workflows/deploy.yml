@@ -33,6 +33,9 @@ jobs:
           username: ${{ secrets.AZURE_USERNAME }}
           password: ${{ secrets.AZURE_PASSWORD }}
           script: |
+           
+            export PATH=$PATH:/usr/bin:/usr/local/bin:/snap/bin
+
             # 1. Create a project directory on Azure
             mkdir -p ~/ucp-bot
             cd ~/ucp-bot
@@ -41,14 +44,14 @@ jobs:
             echo "${{ secrets.ENV_FILE_CONTENTS }}" > .env
 
             # 3. Pull the fresh image from Docker Hub
-            docker pull ${{ secrets.DOCKER_USERNAME }}/ucp-assistant:latest
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/ucp-assistant:latest
 
             # 4. Stop and remove the old container if it exists
-            docker stop ucp-portal-assistant || true
-            docker rm ucp-portal-assistant || true
+            sudo docker stop ucp-portal-assistant || true
+            sudo docker rm ucp-portal-assistant || true
 
-            # 5. Boot the new container (using exact settings from our compose file)
-            docker run -d \
+            # 5. Boot the new container
+            sudo docker run -d \
               --name ucp-portal-assistant \
               --restart always \
               --env-file .env \
@@ -56,4 +59,4 @@ jobs:
               ${{ secrets.DOCKER_USERNAME }}/ucp-assistant:latest
 
             # 6. Clean up old unused Docker images to save disk space
-            docker image prune -af
+            sudo docker image prune -af
