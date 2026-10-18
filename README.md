@@ -92,7 +92,7 @@ llm, llm_with_tools = get_llm(provider="groq")
 ## Features
 
 - **2-Way Push Communication**: Receive push notifications and send replies using ntfy.
-- **Proactive Background Alerts**: Uses `APScheduler` to push class reminders 5 minutes before they start and asks for feedback exactly when they finish.
+- **Proactive Background Alerts**: Uses `APScheduler` to push class reminders 10 minutes before they start and asks for feedback exactly when they finish.
 - **State Injection**: Proactive alerts are injected directly into the LLM's checkpointer memory so the AI remembers the context when you reply.
 - **Persistent Memory (SQLite)**: Saves conversation history in a resilient checkpointer database (`memory.db`), so the AI perfectly remembers context even after a server restart.
 - **Memory Pruning**: Automatic conversation summarization for long threads to minimize LLM token usage.

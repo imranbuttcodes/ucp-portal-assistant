@@ -2,6 +2,7 @@ import os
 import json
 import urllib.request
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from langchain_core.tools import tool
 from uni_db_manager import UniDatabaseManager
 
@@ -15,7 +16,7 @@ print("Database Manager Ready!")
 def get_current_time() -> str:
     """Fetches the current local date, time, and day of the week.
     Use this tool ONLY if the user specifically asks about the current date, time, 'today', or 'now'. Do NOT call this tool for general greetings like 'hi', 'hello', 'hey', or chit-chat."""
-    now = datetime.now()
+    now = datetime.now(ZoneInfo("Asia/Karachi"))
     return json.dumps({
         "date": now.strftime("%Y-%m-%d"),
         "time": now.strftime("%I:%M %p"),
